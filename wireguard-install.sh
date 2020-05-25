@@ -54,7 +54,7 @@ PresharedKey = $CLIENT_PRE_SHARED_KEY
 AllowedIPs = $CLIENT_WG_IPV4/32, $CLIENT_WG_IPV6/128" >>"/etc/wireguard/$SERVER_WG_NIC.conf"
 
 	# Block LAN access for everyone but me
-	if [[ $CLIENT_WG_IPV4 != '192.168.1.2' || $CLIENT_WG_IPV4 != '192.168.1.3' ]]; then
+	if [[ $CLIENT_WG_IPV4 != '192.168.1.2' && $CLIENT_WG_IPV4 != '192.168.1.3' ]]; then
 		iptables -I FORWARD 1 -s "$CLIENT_WG_IPV4/32" -d 192.168.0.0/16 -j DROP
 		iptables -I FORWARD 1 -s "$CLIENT_WG_IPV4/32" -d 172.16.0.0/12 -j DROP
 		iptables -I FORWARD 1 -s "$CLIENT_WG_IPV4/32" -d 10.0.0.0/8 -j DROP
