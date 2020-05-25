@@ -45,13 +45,13 @@ DNS = $CLIENT_DNS_1, $CLIENT_DNS_2
 PublicKey = $SERVER_PUB_KEY
 PresharedKey = $CLIENT_PRE_SHARED_KEY
 Endpoint = $ENDPOINT
-AllowedIPs = 0.0.0.0/0,::/0" >>"$HOME/$SERVER_WG_NIC-client-$CLIENT_NAME.conf"
+AllowedIPs = 0.0.0.0/0, ::/0" >> "$HOME/$SERVER_WG_NIC-client-$CLIENT_NAME.conf"
 
 	# Add the client as a peer to the server
 	echo -e "\n[Peer]
 PublicKey = $CLIENT_PUB_KEY
 PresharedKey = $CLIENT_PRE_SHARED_KEY
-AllowedIPs = $CLIENT_WG_IPV4/32, $CLIENT_WG_IPV6/128" >>"/etc/wireguard/$SERVER_WG_NIC.conf"
+AllowedIPs = $CLIENT_WG_IPV4/32, $CLIENT_WG_IPV6/128" >> "/etc/wireguard/$SERVER_WG_NIC.conf"
 
 	# Block LAN access for everyone but me
 	if [[ $CLIENT_WG_IPV4 != '192.168.1.2' && $CLIENT_WG_IPV4 != '192.168.1.3' ]]; then
@@ -120,7 +120,7 @@ fi
 
 # Detect public IPv4 address and pre-fill for the user
 SERVER_PUB_IPV4=$(ip addr | grep 'inet' | grep -v inet6 | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1)
-read -rp "IPv4, IPv6 public address or DNS name: " -e -i "$SERVER_PUB_IPV4" SERVER_PUB_IP
+read -rp "IPv4/IPv6 public address or DNS name: " -e -i "$SERVER_PUB_IPV4" SERVER_PUB_IP
 
 # Detect public interface and pre-fill for the user
 SERVER_PUB_NIC="$(ip -4 route ls | grep default | grep -Po '(?<=dev )(\S+)' | head -1)"
@@ -135,7 +135,7 @@ read -rp "Server's WireGuard IPv4: " -e -i "$SERVER_WG_IPV4" SERVER_WG_IPV4
 SERVER_WG_IPV6="fd42:42:42::1"
 read -rp "Server's WireGuard IPv6: " -e -i "$SERVER_WG_IPV6" SERVER_WG_IPV6
 
-# Generate random number within private ports range
+# Listen on port 11153
 SERVER_PORT=11153
 read -rp "Server's WireGuard port: " -e -i "$SERVER_PORT" SERVER_PORT
 
@@ -193,7 +193,7 @@ source /etc/wireguard/params
 echo "[Interface]
 Address = $SERVER_WG_IPV4/24, $SERVER_WG_IPV6/64
 ListenPort = $SERVER_PORT
-PrivateKey = $SERVER_PRIV_KEY" >"/etc/wireguard/$SERVER_WG_NIC.conf"
+PrivateKey = $SERVER_PRIV_KEY" > "/etc/wireguard/$SERVER_WG_NIC.conf"
 
 if [ -x "$(command -v firewall-cmd)" ]; then
 	FIREWALLD_IPV4_ADDRESS=$(echo "$SERVER_WG_IPV4" | cut -d"." -f1-3)".0"
@@ -202,7 +202,7 @@ if [ -x "$(command -v firewall-cmd)" ]; then
 PostDown = firewall-cmd --remove-port $SERVER_PORT/udp && firewall-cmd --remove-rich-rule='rule family=ipv4 source address=$FIREWALLD_IPV4_ADDRESS/24 masquerade' && firewall-cmd --remove-rich-rule='rule family=ipv6 source address=$FIREWALLD_IPV6_ADDRESS/24 masquerade'" >>"/etc/wireguard/$SERVER_WG_NIC.conf"
 else
 	echo "PostUp = iptables -A FORWARD -i $SERVER_WG_NIC -j ACCEPT; iptables -A FORWARD -o $SERVER_WG_NIC -j ACCEPT; iptables -t nat -A POSTROUTING -o $SERVER_PUB_NIC -j MASQUERADE; ip6tables -A FORWARD -i $SERVER_WG_NIC -j ACCEPT; ip6tables -A FORWARD -o $SERVER_WG_NIC -j ACCEPT; ip6tables -t nat -A POSTROUTING -o $SERVER_PUB_NIC -j MASQUERADE
-PostDown = iptables -D FORWARD -i $SERVER_WG_NIC -j ACCEPT; iptables -D FORWARD -o $SERVER_WG_NIC -j ACCEPT; iptables -t nat -D POSTROUTING -o $SERVER_PUB_NIC -j MASQUERADE; ip6tables -D FORWARD -i $SERVER_WG_NIC -j ACCEPT; ip6tables -D FORWARD -o $SERVER_WG_NIC -j ACCEPT; ip6tables -t nat -D POSTROUTING -o $SERVER_PUB_NIC -j MASQUERADE" >>"/etc/wireguard/$SERVER_WG_NIC.conf"
+PostDown = iptables -D FORWARD -i $SERVER_WG_NIC -j ACCEPT; iptables -D FORWARD -o $SERVER_WG_NIC -j ACCEPT; iptables -t nat -D POSTROUTING -o $SERVER_PUB_NIC -j MASQUERADE; ip6tables -D FORWARD -i $SERVER_WG_NIC -j ACCEPT; ip6tables -D FORWARD -o $SERVER_WG_NIC -j ACCEPT; ip6tables -t nat -D POSTROUTING -o $SERVER_PUB_NIC -j MASQUERADE" >> "/etc/wireguard/$SERVER_WG_NIC.conf"
 fi
 
 # Enable routing on the server
