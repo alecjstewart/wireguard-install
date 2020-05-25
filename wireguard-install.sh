@@ -6,10 +6,10 @@ function addClient() {
 
 	if [[ $SERVER_PUB_IP =~ .*:.* ]]; then
 		echo "IPv6 Detected"
-		ENDPOINT="[$SERVER_PUB_IP]:$SERVER_PORT"
+		ENDPOINT="[$SERVER_PUB_IP]:123"
 	else
 		echo "IPv4 Detected"
-		ENDPOINT="$SERVER_PUB_IP:$SERVER_PORT"
+		ENDPOINT="$SERVER_PUB_IP:123"
 	fi
 
 	CLIENT_WG_IPV4="192.168.1.2"
@@ -135,8 +135,8 @@ read -rp "Server's WireGuard IPv4: " -e -i "$SERVER_WG_IPV4" SERVER_WG_IPV4
 SERVER_WG_IPV6="fd42:42:42::1"
 read -rp "Server's WireGuard IPv6: " -e -i "$SERVER_WG_IPV6" SERVER_WG_IPV6
 
-# Listen on port 11153
-SERVER_PORT=11153
+# Generate random number within private ports range
+SERVER_PORT=$(shuf -i49152-65535 -n1)
 read -rp "Server's WireGuard port: " -e -i "$SERVER_PORT" SERVER_PORT
 
 # Install WireGuard tools and module
